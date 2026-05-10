@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotak Neo Web Trader</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155; }
+        h1, h2 { color: #f1f5f9; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #94a3b8; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; width: 100%; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        .hidden { display: none; }
+        .error { color: #ef4444; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; background: #0f172a; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kotak Neo Trader</h1>
+    <div id="error-msg" class="error hidden"></div>
+
+    <!-- Login Section -->
+    <div id="login-section" class="card">
+        <h2>Login</h2>
+        <div id="totp-step">
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" id="mobile" placeholder="+91...">
+            </div>
+            <div class="form-group">
+                <label>UCC</label>
+                <input type="text" id="ucc">
+            </div>
+            <div class="form-group">
+                <label>TOTP</label>
+                <input type="text" id="totp" placeholder="000000">
+            </div>
+            <button onclick="handleTotp()">Verify TOTP</button>
+        </div>
+
+        <div id="mpin-step" class="hidden">
+            <div class="form-group">
+                <label>MPIN</label>
+                <input type="password" id="mpin" placeholder="****">
+            </div>
+            <button onclick="handleMpin()">Login</button>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="hidden">
+        <button onclick="loadData()" style="width: auto; margin-bottom: 20px;">Refresh Data</button>
+
+        <div class="card">
+            <h2>Current Positions</h2>
+            <table id="positions-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Qty</th>
+                        <th>Avg Price</th>
+                        <th>Net Value</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Last Orders</h2>
+            <table id="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Symbol</th>
+                        <th>Type</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showError(msg) {
+        const el = document.getElementById('error-msg');
+        el.innerText = msg;
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    async function handleTotp() {
+        const payload = {
+            mobile_number: document.getElementById('mobile').value,
+            ucc: document.getElementById('ucc').value,
+            totp: document.getElementById('totp').value
+        };
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('totp-step').classList.add('hidden');
+                document.getElementById('mpin-step').classList.remove('hidden');
+            } else {
+                showError(data.detail || 'TOTP Login Failed');
+            }
+        } catch (e) {
+            showError('Network error');
+        }
+    }
+
+    async function handleMpin() {
+        const payload = { mpin: document.getElementById('mpin').value };
+        try {
+            const res = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                loadData();
+            } else {
+                showError(data.detail || 'MPIN Verification Failed');
+            }
+        } catch (e) {
+            showError('Network error');
+        }
+    }
+
+    async function loadData() {
+        try {
+            // Load Positions
+            const posRes = await fetch('/api/positions');
+            const posData = await posRes.json();
+            const posBody = document.querySelector('#positions-table tbody');
+            posBody.innerHTML = '';
+
+            if (posData.data && posData.data.length > 0) {
+                posData.data.forEach(p => {
+                    posBody.innerHTML += `<tr>
+                        <td>${p.trading_symbol || p.trdSym}</td>
+                        <td>${p.quantity || p.flQty}</td>
+                        <td>${p.avg_price || p.avgPrc}</td>
+                        <td>${p.net_value || (p.flQty * p.avgPrc)}</td>
+                    </tr>`;
+                });
+            } else {
+                 posBody.innerHTML = '<tr><td colspan="4">No positions found</td></tr>';
+            }
+
+            // Load Orders
+            const ordRes = await fetch('/api/orders');
+            const ordData = await ordRes.json();
+            const ordBody = document.querySelector('#orders-table tbody');
+            ordBody.innerHTML = '';
+
+            if (ordData.data && ordData.data.length > 0) {
+                ordData.data.forEach(o => {
+                    ordBody.innerHTML += `<tr>
+                        <td>${o.order_id || o.nOrdNo}</td>
+                        <td>${o.trading_symbol || o.trdSym}</td>
+                        <td>${o.transaction_type || o.trnsTp}</td>
+                        <td>${o.quantity || o.qty}</td>
+                        <td>${o.price || o.prc}</td>
+                        <td>${o.status || o.ordSt}</td>
+                    </tr>`;
+                });
+            } else {
+                 ordBody.innerHTML = '<tr><td colspan="6">No orders found</td></tr>';
+            }
+
+        } catch (e) {
+            showError('Failed to fetch data');
+        }
+    }
+</script>
+</body>
+</html>
