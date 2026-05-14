@@ -1,64 +1,48 @@
-# Kotak Neo Algorithmic Trading Platform
+# Kotak Neo Algorithmic Trading Platform v2
 
-A production-ready, full-stack trading web app built with Next.js 14+ (App Router) and TypeScript for the frontend, and a Python FastAPI backend integrating the official [Kotak Neo Python SDK v2](https://github.com/Kotak-Neo/Kotak-neo-api-v2).
+A modern, full-stack trading application built with FastAPI and a reactive Tailwind CSS frontend. It integrates with the Kotak Neo SDK for automated trading.
 
-## Features
-- **Secure Authentication**: TOTP and MPIN login flow via Kotak API.
-- **Live Market Data**: WebSocket auto-reconnecting integration for real-time `lightweight-charts`.
-- **Strategy Builder**: Custom automated trading rules with entry, exit, stop loss, and take profit.
-- **Risk Management**: Global emergency Kill Switch, max daily loss limits, and simulation mode.
-- **Account Dashboard**: Live view of positions, holdings, limits, and orders.
-- **Audit Logs**: Database-backed trail of all signal generations, order responses, and risk blocks.
-- **Mock Mode**: Fully testable locally without live Kotak credentials.
+## 🚀 Features
 
-## Architecture & Limitations
-The application is strictly separated into a Next.js static frontend (suitable for Vercel) and a persistent Python FastAPI backend.
-> **Known Limitation:** The Python backend maintains persistent WebSocket connections to the Kotak exchange and evaluates trading strategies via an asyncio loop in real-time. Therefore, **the backend must be hosted on a persistent server** (e.g., Railway, Render, Fly.io, or Docker/VPS) and cannot be deployed to serverless environments like Vercel Functions or AWS Lambda, as serverless functions time out and will drop live subscriptions and background trading loops.
+- **Modern Dashboard**: High-performance UI for monitoring positions and orders.
+- **Mock Mode**: Fully functional simulation mode for testing without real credentials.
+- **Strategy Engine**: Define and toggle automated trading rules.
+- **Risk Management**: Global kill switch and configurable daily loss limits.
+- **Audit Logging**: Comprehensive system activity tracking in a local SQLite database.
 
-## Deployment Steps
+## 🛠️ Tech Stack
 
-### 1. Frontend (Vercel)
-1. Navigate to the `frontend/` directory.
-2. Ensure you have copied `.env.example` to `.env` and set `NEXT_PUBLIC_API_URL` to your live backend URL (e.g., `https://api.mytradingapp.com`).
-3. Push to GitHub.
-4. Import the repository in Vercel.
-5. Set the Framework Preset to `Next.js` and Root Directory to `frontend`.
-6. Add environment variables and deploy.
+- **Backend**: FastAPI (Python 3.12+), SQLAlchemy (SQLite).
+- **Frontend**: Tailwind CSS, Vanilla JS (Modular).
+- **SDK**: Official Kotak Neo Python SDK v2.
 
-### 2. Backend (Docker / Railway / Render)
-1. Set up a persistent service (e.g., Railway App).
-2. Use the provided `backend/Dockerfile`.
-3. Set your environment variables in the service dashboard (refer to `backend/.env.example`).
-   - `MOCK_MODE=False`
-   - `KOTAK_CONSUMER_KEY=your_key`
-4. Deploy the service and expose port `8000`.
+## 📦 Setup
 
-## Local Development Setup
+### Local Development
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Run the application:
+   ```bash
+   python app.py
+   ```
+3. Access at `http://localhost:8000`.
 
-### Backend
+### Production (Docker)
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn backend.main:app --reload
+docker build -t kotak-neo-algo .
+docker run -p 8000:8000 kotak-neo-algo
 ```
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## ⚙️ Configuration
 
-Visit `http://localhost:3000` to access the trading dashboard.
+Environment variables:
+- `MOCK_MODE`: Set to `True` for simulation (default `False` in Docker).
+- `KOTAK_CONSUMER_KEY`: Your Kotak API consumer key.
+- `KOTAK_CONSUMER_SECRET`: Your Kotak API consumer secret.
+- `DATABASE_URL`: SQLAlchemy database URL (default: `sqlite:///./trading_app.db`).
+- `PORT`: Server port (default: `8000`).
 
-## Production Hardening Checklist
-- [ ] Connect a PostgreSQL database via `DB_URL` environment variable to ensure order logs and sessions persist across backend container restarts.
-- [ ] Route traffic securely over HTTPS/WSS.
-- [ ] Ensure backend monitoring/alerts are configured so you are notified if the background strategy evaluator loop crashes.
-- [ ] Ensure `MOCK_MODE` is disabled in the `.env` configuration.
-- [ ] Implement robust token encryption and secure storage of session IDs.
-
-## Disclaimer & Compliance Statement
-**User Assumes All Financial Risk:** This platform allows users to define custom logic for automated trade execution. It relies on Kotak APIs for data and order placement. Users should thoroughly test strategies in "Paper Trading" mode before enabling live execution. The developer bears no responsibility for financial losses, missed trades, order routing errors, or API timeouts. Use responsibly.
+## ⚠️ Disclaimer
+Automated trading carries significant financial risk. Always test strategies thoroughly in Mock Mode before live deployment.
