@@ -3,196 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kotak Neo Web Trader</title>
+    <title>Kotak Neo | Algorithmic Trading Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155; }
-        h1, h2 { color: #f1f5f9; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #94a3b8; }
-        input { width: 100%; padding: 8px; box-sizing: border-box; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; }
-        button { background: #2563eb; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; width: 100%; font-weight: bold; }
-        button:hover { background: #1d4ed8; }
-        .hidden { display: none; }
-        .error { color: #ef4444; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; }
-        th { color: #94a3b8; background: #0f172a; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
-<body>
-
-<div class="container">
-    <h1>Kotak Neo Trader</h1>
-    <div id="error-msg" class="error hidden"></div>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">KOTAK<span class="text-blue-500">NEO</span> ALGO</span>
+                </div>
+                <div id="nav-status" class="hidden flex items-center space-x-4">
+                    <span class="flex items-center text-sm text-slate-400">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Connected
+                    </span>
+                    <button onclick="handleLogout()" class="text-sm font-medium text-slate-300 hover:text-white transition">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <!-- Login Section -->
-    <div id="login-section" class="card">
-        <h2>Login</h2>
-        <div id="totp-step">
-            <div class="form-group">
-                <label>Mobile Number</label>
-                <input type="text" id="mobile" placeholder="+91...">
-            </div>
-            <div class="form-group">
-                <label>UCC</label>
-                <input type="text" id="ucc">
-            </div>
-            <div class="form-group">
-                <label>TOTP</label>
-                <input type="text" id="totp" placeholder="000000">
-            </div>
-            <button onclick="handleTotp()">Verify TOTP</button>
-        </div>
+    <main id="auth-view" class="max-w-md mx-auto mt-20 px-4">
+        <div class="glass-card p-8 rounded-2xl shadow-2xl">
+            <h2 class="text-2xl font-bold text-center mb-6">Welcome Back</h2>
 
-        <div id="mpin-step" class="hidden">
-            <div class="form-group">
-                <label>MPIN</label>
-                <input type="password" id="mpin" placeholder="****">
+            <div id="totp-step">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Mobile Number</label>
+                        <input type="text" id="mobile" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="+91 9876543210">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">UCC</label>
+                        <input type="text" id="ucc" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="CLIENTCODE">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">TOTP</label>
+                        <input type="text" id="totp" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="000000">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition shadow-lg shadow-blue-900/20">
+                        Verify TOTP
+                    </button>
+                </div>
             </div>
-            <button onclick="handleMpin()">Login</button>
+
+            <div id="mpin-step" class="hidden">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">MPIN</label>
+                        <input type="password" id="mpin" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="****">
+                    </div>
+                    <button onclick="handleVerifyMpin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition shadow-lg shadow-blue-900/20">
+                        Complete Login
+                    </button>
+                </div>
+            </div>
+
+            <p id="auth-error" class="text-red-400 text-sm mt-4 text-center hidden"></p>
         </div>
-    </div>
+    </main>
 
     <!-- Dashboard Section -->
-    <div id="dashboard-section" class="hidden">
-        <button onclick="loadData()" style="width: auto; margin-bottom: 20px;">Refresh Data</button>
+    <main id="dashboard-view" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-        <div class="card">
-            <h2>Current Positions</h2>
-            <table id="positions-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Qty</th>
-                        <th>Avg Price</th>
-                        <th>Net Value</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <!-- Sidebar / Controls -->
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="glass-card p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-shield-alt text-yellow-500 mr-2"></i> Risk Management
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-red-900/20 border border-red-500/20 rounded-lg">
+                            <span class="text-sm font-medium">Kill Switch</span>
+                            <button id="kill-switch-btn" onclick="toggleKillSwitch()" class="w-12 h-6 bg-slate-700 rounded-full relative transition">
+                                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition"></span>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase font-bold">Max Daily Loss</label>
+                            <input type="number" id="risk-max-loss" class="w-full bg-slate-800 border border-slate-700 rounded mt-1 px-3 py-1.5 text-sm outline-none">
+                        </div>
+                        <button onclick="saveRiskSettings()" class="w-full bg-slate-700 hover:bg-slate-600 text-xs font-bold py-2 rounded transition">UPDATE SETTINGS</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4">Market Watch</h3>
+                    <div id="market-watch" class="space-y-3">
+                        <!-- Prices injected here -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3 space-y-8">
+                <!-- Top Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-card p-6 rounded-xl border-l-4 border-blue-500">
+                        <p class="text-slate-400 text-sm">Account Balance</p>
+                        <h4 class="text-2xl font-bold mt-1">₹1,24,500.00</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                        <p class="text-slate-400 text-sm">Today's P&L</p>
+                        <h4 class="text-2xl font-bold mt-1 text-green-400">+₹2,450.50</h4>
+                    </div>
+                    <div class="glass-card p-6 rounded-xl border-l-4 border-slate-500">
+                        <p class="text-slate-400 text-sm">Open Positions</p>
+                        <h4 id="stat-positions-count" class="text-2xl font-bold mt-1">2</h4>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="border-b border-slate-800">
+                    <nav class="flex space-x-8">
+                        <button onclick="switchTab('portfolio')" class="tab-btn border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-white">Portfolio</button>
+                        <button onclick="switchTab('strategies')" class="tab-btn border-transparent py-4 px-1 text-sm font-medium text-slate-400 hover:text-white hover:border-slate-300">Strategies</button>
+                        <button onclick="switchTab('logs')" class="tab-btn border-transparent py-4 px-1 text-sm font-medium text-slate-400 hover:text-white hover:border-slate-300">Audit Logs</button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content: Portfolio -->
+                <div id="tab-portfolio" class="tab-content space-y-6">
+                    <div class="glass-card rounded-xl overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                            <h3 class="font-semibold">Current Positions</h3>
+                            <button onclick="loadPositions()" class="text-blue-400 hover:text-blue-300 text-sm"><i class="fas fa-sync-alt mr-1"></i> Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-800/50 text-slate-400 uppercase text-xs">
+                                    <tr>
+                                        <th class="px-6 py-3">Symbol</th>
+                                        <th class="px-6 py-3 text-right">Qty</th>
+                                        <th class="px-6 py-3 text-right">Avg Price</th>
+                                        <th class="px-6 py-3 text-right">Net Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="positions-list" class="divide-y divide-slate-800">
+                                    <!-- Positions injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                            <h3 class="font-semibold">Recent Orders</h3>
+                            <button onclick="loadOrders()" class="text-blue-400 hover:text-blue-300 text-sm"><i class="fas fa-sync-alt mr-1"></i> Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-800/50 text-slate-400 uppercase text-xs">
+                                    <tr>
+                                        <th class="px-6 py-3">Symbol</th>
+                                        <th class="px-6 py-3">Type</th>
+                                        <th class="px-6 py-3 text-right">Qty</th>
+                                        <th class="px-6 py-3 text-right">Price</th>
+                                        <th class="px-6 py-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-list" class="divide-y divide-slate-800">
+                                    <!-- Orders injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Strategies -->
+                <div id="tab-strategies" class="tab-content hidden space-y-6">
+                    <div class="flex justify-end">
+                        <button onclick="showCreateStrategyModal()" class="bg-blue-600 hover:bg-blue-500 text-sm font-bold px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-plus mr-2"></i> CREATE STRATEGY
+                        </button>
+                    </div>
+                    <div id="strategies-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Strategy cards injected here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Logs -->
+                <div id="tab-logs" class="tab-content hidden">
+                    <div class="glass-card rounded-xl overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-800">
+                            <h3 class="font-semibold">System Activity</h3>
+                        </div>
+                        <div class="p-4 space-y-2 max-h-[600px] overflow-y-auto font-mono text-xs" id="logs-container">
+                            <!-- Logs injected here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
+    </main>
 
-        <div class="card">
-            <h2>Last Orders</h2>
-            <table id="orders-table">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Symbol</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <!-- Modals -->
+    <div id="strategy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold">New Trading Strategy</h3>
+                <button onclick="closeStrategyModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase">Strategy Name</label>
+                        <input type="text" id="strat-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase">Trading Symbol</label>
+                        <input type="text" id="strat-symbol" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 mt-1" placeholder="NIFTY-EQ">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase">Stop Loss (%)</label>
+                        <input type="number" id="strat-sl" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 mt-1">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase">Entry Condition (Signal)</label>
+                    <textarea id="strat-entry" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 mt-1" placeholder="RSI < 30"></textarea>
+                </div>
+                <button onclick="saveStrategy()" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 rounded-lg transition mt-4">DEPLOY STRATEGY</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    function showError(msg) {
-        const el = document.getElementById('error-msg');
-        el.innerText = msg;
-        el.classList.remove('hidden');
-        setTimeout(() => el.classList.add('hidden'), 5000);
-    }
-
-    async function handleTotp() {
-        const payload = {
-            mobile_number: document.getElementById('mobile').value,
-            ucc: document.getElementById('ucc').value,
-            totp: document.getElementById('totp').value
-        };
-
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok) {
-                document.getElementById('totp-step').classList.add('hidden');
-                document.getElementById('mpin-step').classList.remove('hidden');
-            } else {
-                showError(data.detail || 'TOTP Login Failed');
-            }
-        } catch (e) {
-            showError('Network error');
-        }
-    }
-
-    async function handleMpin() {
-        const payload = { mpin: document.getElementById('mpin').value };
-        try {
-            const res = await fetch('/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                loadData();
-            } else {
-                showError(data.detail || 'MPIN Verification Failed');
-            }
-        } catch (e) {
-            showError('Network error');
-        }
-    }
-
-    async function loadData() {
-        try {
-            // Load Positions
-            const posRes = await fetch('/api/positions');
-            const posData = await posRes.json();
-            const posBody = document.querySelector('#positions-table tbody');
-            posBody.innerHTML = '';
-
-            if (posData.data && posData.data.length > 0) {
-                posData.data.forEach(p => {
-                    posBody.innerHTML += `<tr>
-                        <td>${p.trading_symbol || p.trdSym}</td>
-                        <td>${p.quantity || p.flQty}</td>
-                        <td>${p.avg_price || p.avgPrc}</td>
-                        <td>${p.net_value || (p.flQty * p.avgPrc)}</td>
-                    </tr>`;
-                });
-            } else {
-                 posBody.innerHTML = '<tr><td colspan="4">No positions found</td></tr>';
-            }
-
-            // Load Orders
-            const ordRes = await fetch('/api/orders');
-            const ordData = await ordRes.json();
-            const ordBody = document.querySelector('#orders-table tbody');
-            ordBody.innerHTML = '';
-
-            if (ordData.data && ordData.data.length > 0) {
-                ordData.data.forEach(o => {
-                    ordBody.innerHTML += `<tr>
-                        <td>${o.order_id || o.nOrdNo}</td>
-                        <td>${o.trading_symbol || o.trdSym}</td>
-                        <td>${o.transaction_type || o.trnsTp}</td>
-                        <td>${o.quantity || o.qty}</td>
-                        <td>${o.price || o.prc}</td>
-                        <td>${o.status || o.ordSt}</td>
-                    </tr>`;
-                });
-            } else {
-                 ordBody.innerHTML = '<tr><td colspan="6">No orders found</td></tr>';
-            }
-
-        } catch (e) {
-            showError('Failed to fetch data');
-        }
-    }
-</script>
+    <!-- Scripts -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/strategies.js"></script>
+    <script src="/static/js/main.js"></script>
 </body>
 </html>
